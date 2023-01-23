@@ -9,7 +9,7 @@ resource "aws_api_gateway_rest_api" "apigw" {
 resource "aws_api_gateway_resource" "tracks" {
   rest_api_id = aws_api_gateway_rest_api.apigw.id
   parent_id   = aws_api_gateway_rest_api.apigw.root_resource_id
-  path_part   = "whatevs"
+  path_part   = "{proxy+}"
 }
 
 resource "aws_api_gateway_method" "tracks_post" {
@@ -17,7 +17,7 @@ resource "aws_api_gateway_method" "tracks_post" {
   resource_id      = aws_api_gateway_resource.tracks.id
   http_method      = "ANY"
   authorization    = "NONE"
-  api_key_required = false
+  api_key_required = true
 }
 
 resource "aws_api_gateway_integration" "tracks_post_integration" {
@@ -26,7 +26,7 @@ resource "aws_api_gateway_integration" "tracks_post_integration" {
   http_method             = aws_api_gateway_method.tracks_post.http_method
   type                    = "HTTP_PROXY"
   integration_http_method = "ANY"
-  uri                     = "https://hmpps-integration-api-development.apps.live.cloud-platform.service.justice.gov.uk/"
+  uri                     = "https://en.wikipedia.org/wiki/Lolcat"
 }
 
 resource "aws_api_gateway_deployment" "live" {
