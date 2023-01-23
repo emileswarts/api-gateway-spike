@@ -29,15 +29,14 @@ resource "aws_api_gateway_integration" "tracks_post_integration" {
   uri                     = "https://en.wikipedia.org/wiki/Lolcat"
 }
 
-resource "aws_api_gateway_resource" "tracks_2" {
+data "aws_api_gateway_resource" "tracks_2" {
   rest_api_id = aws_api_gateway_rest_api.apigw.id
-  parent_id   = aws_api_gateway_rest_api.apigw.root_resource_id
-  path_part   = "/"
+  path        = "/"
 }
 
 resource "aws_api_gateway_method" "tracks_2_post" {
   rest_api_id      = aws_api_gateway_rest_api.apigw.id
-  resource_id      = aws_api_gateway_resource.tracks_2.id
+  resource_id      = data.aws_api_gateway_resource.tracks_2.id
   http_method      = "ANY"
   authorization    = "NONE"
   api_key_required = true
@@ -45,7 +44,7 @@ resource "aws_api_gateway_method" "tracks_2_post" {
 
 resource "aws_api_gateway_integration" "tracks_2_post_integration" {
   rest_api_id             = aws_api_gateway_rest_api.apigw.id
-  resource_id             = aws_api_gateway_resource.tracks_2.id
+  resource_id             = data.aws_api_gateway_resource.tracks_2.id
   http_method             = aws_api_gateway_method.tracks_2_post.http_method
   type                    = "HTTP_PROXY"
   integration_http_method = "ANY"
@@ -72,7 +71,7 @@ resource "aws_api_gateway_deployment" "live" {
 }
 
 resource "aws_api_gateway_api_key" "api_keys" {
-  name  = "fake-mapps"
+  name = "fake-mapps"
 }
 
 resource "aws_api_gateway_usage_plan" "default" {
