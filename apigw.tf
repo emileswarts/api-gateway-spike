@@ -1,5 +1,5 @@
 resource "aws_api_gateway_rest_api" "apigw" {
-  name = "tester"
+  name = "hmpps-integration-api"
 
   endpoint_configuration {
     types = ["REGIONAL"]
@@ -18,6 +18,10 @@ resource "aws_api_gateway_method" "tracks_post" {
   http_method      = "ANY"
   authorization    = "NONE"
   api_key_required = true
+
+  request_parameters = {
+    "method.request.path.proxy" = true
+  }
 }
 
 resource "aws_api_gateway_integration" "tracks_post_integration" {
@@ -26,29 +30,11 @@ resource "aws_api_gateway_integration" "tracks_post_integration" {
   http_method             = aws_api_gateway_method.tracks_post.http_method
   type                    = "HTTP_PROXY"
   integration_http_method = "ANY"
-  uri                     = "https://en.wikipedia.org/wiki/Lolcat"
-}
+  uri                     = "https://hmpps-integration-api-development.apps.live.cloud-platform.service.justice.gov.uk/{proxy}"
 
-data "aws_api_gateway_resource" "tracks_2" {
-  rest_api_id = aws_api_gateway_rest_api.apigw.id
-  path        = "/"
-}
-
-resource "aws_api_gateway_method" "tracks_2_post" {
-  rest_api_id      = aws_api_gateway_rest_api.apigw.id
-  resource_id      = data.aws_api_gateway_resource.tracks_2.id
-  http_method      = "ANY"
-  authorization    = "NONE"
-  api_key_required = true
-}
-
-resource "aws_api_gateway_integration" "tracks_2_post_integration" {
-  rest_api_id             = aws_api_gateway_rest_api.apigw.id
-  resource_id             = data.aws_api_gateway_resource.tracks_2.id
-  http_method             = aws_api_gateway_method.tracks_2_post.http_method
-  type                    = "HTTP_PROXY"
-  integration_http_method = "ANY"
-  uri                     = "https://en.wikipedia.org/wiki/Lolcat"
+  request_parameters = {
+    "integration.request.path.proxy" = "method.request.path.proxy"
+  }
 }
 
 resource "aws_api_gateway_deployment" "live" {
@@ -61,8 +47,6 @@ resource "aws_api_gateway_deployment" "live" {
   depends_on = [
     aws_api_gateway_method.tracks_post,
     aws_api_gateway_integration.tracks_post_integration,
-    aws_api_gateway_method.tracks_2_post,
-    aws_api_gateway_integration.tracks_2_post_integration
   ]
 
   lifecycle {
@@ -88,4 +72,10 @@ resource "aws_api_gateway_usage_plan_key" "main" {
   key_id        = aws_api_gateway_api_key.api_keys.id
   key_type      = "API_KEY"
   usage_plan_id = aws_api_gateway_usage_plan.default.id
+}
+
+resource "aws_api_gateway_stage" "example" {
+  deployment_id = aws_api_gateway_deployment.live.id
+  rest_api_id   = aws_api_gateway_rest_api.apigw.id
+  stage_name    = "example"
 }
